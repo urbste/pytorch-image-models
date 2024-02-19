@@ -7,7 +7,8 @@ from .convit import *
 from .convmixer import *
 from .convnext import *
 from .crossvit import *
-from .cspnet import *from .beit import *
+from .cspnet import *
+from .beit import *
 from .byoanet import *
 from .byobnet import *
 from .cait import *
