@@ -124,6 +124,7 @@ class TSEModule(nn.Module):
         self.avg_pool = nn.AvgPool2d(kernel_size = pool_kernel, stride = pool_kernel, ceil_mode = True)
         self.kernel_size = pool_kernel
 
+
     def forward(self, x):
 
         _, C, H, W = x.size()
@@ -131,7 +132,7 @@ class TSEModule(nn.Module):
         x_se = self.avg_pool(x)
         x_se = self.cv1(x_se)
         x_se = self.act(self.bn(x_se))
-        y = self.cv2(x_se)
+        y = self.gate(self.cv2(x_se))
         y = torch.repeat_interleave(y, self.kernel_size, dim = -2)[:, :, :H, :]
         y = torch.repeat_interleave(y, self.kernel_size, dim = -1)[:, :, :, :W]
         return x * y
