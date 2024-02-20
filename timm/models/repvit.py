@@ -156,7 +156,7 @@ class RepViTBlock(nn.Module):
             self.se = TiledSqueezeExcite(in_dim, 0.25)
         else:
             self.se = SqueezeExcite(in_dim, 0.25)
-            
+
         self.channel_mixer = RepVitMlp(in_dim, in_dim * mlp_ratio, act_layer)
 
     def forward(self, x):
@@ -182,7 +182,7 @@ class RepVitStem(nn.Module):
 class RepVitDownsample(nn.Module):
     def __init__(self, in_dim, mlp_ratio, out_dim, kernel_size, act_layer, legacy=False):
         super().__init__()
-        self.pre_block = RepViTBlock(in_dim, mlp_ratio, kernel_size, use_se=False, act_layer=act_layer, legacy=legacy)
+        self.pre_block = RepViTBlock(in_dim, mlp_ratio, kernel_size, use_se=False, act_layer=act_layer, legacy=legacy, tiled_se=True)
         self.spatial_downsample = ConvNorm(in_dim, in_dim, kernel_size, 2, (kernel_size - 1) // 2, groups=in_dim)
         self.channel_downsample = ConvNorm(in_dim, out_dim, 1, 1)
         self.ffn = RepVitMlp(out_dim, out_dim * mlp_ratio, act_layer)
@@ -247,7 +247,7 @@ class RepVitStage(nn.Module):
         blocks = []
         use_se = True
         for _ in range(depth):
-            blocks.append(RepViTBlock(out_dim, mlp_ratio, kernel_size, use_se, act_layer, legacy))
+            blocks.append(RepViTBlock(out_dim, mlp_ratio, kernel_size, use_se, act_layer, legacy, tiled_se=True))
             use_se = not use_se
 
         self.blocks = nn.Sequential(*blocks)
@@ -508,6 +508,13 @@ def repvit_m1_5(pretrained=False, **kwargs):
     model_args = dict(embed_dim=(64, 128, 256, 512), depth=(4, 4, 24, 4))
     return _create_repvit('repvit_m1_5', pretrained=pretrained, **dict(model_args, **kwargs))
 
+@register_model
+def repvit_m1_5_sam(pretrained=False, **kwargs):
+    """
+    Constructs a RepViT-M1.5 model
+    """
+    model_args = dict(embed_dim=(64, 128, 256, 512), depth=(4, 4, 24, 4))
+    return _create_repvit('repvit_m1_5', pretrained=pretrained, **dict(model_args, **kwargs))
 
 @register_model
 def repvit_m2_3(pretrained=False, **kwargs):

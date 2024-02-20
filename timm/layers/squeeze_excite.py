@@ -109,7 +109,7 @@ class TSEModule(nn.Module):
     def __init__(
             self, channels, rd_ratio=1. / 16, rd_channels=None, rd_divisor=8, add_maxpool=False,
             pool_kernel = 7, bias=True, act_layer=nn.ReLU, norm_layer=None, gate_layer='sigmoid'):
-        super(SEModule, self).__init__()
+        super(TSEModule, self).__init__()
         self.add_maxpool = add_maxpool
         if not rd_channels:
             rd_channels = make_divisible(channels * rd_ratio, rd_divisor, round_limit=0.)
@@ -128,12 +128,12 @@ class TSEModule(nn.Module):
 
         _, C, H, W = x.size()
 
-        x_se = self.avg_pool(x_se)
+        x_se = self.avg_pool(x)
         x_se = self.cv1(x_se)
         x_se = self.act(self.bn(x_se))
-        x_se = self.cv2(x_se)
+        y = self.cv2(x_se)
         y = torch.repeat_interleave(y, self.kernel_size, dim = -2)[:, :, :H, :]
         y = torch.repeat_interleave(y, self.kernel_size, dim = -1)[:, :, :, :W]
-        return x * self.gate(x_se)
+        return x * y
 
 TiledSqueezeExcite = TSEModule  # alias
