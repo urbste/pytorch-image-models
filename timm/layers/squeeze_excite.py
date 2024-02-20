@@ -10,6 +10,7 @@ Paper: `CenterMask : Real-Time Anchor-Free Instance Segmentation` - https://arxi
 
 Hacked together by / Copyright 2021 Ross Wightman
 """
+import torch
 from torch import nn as nn
 
 from .create_act import create_act_layer
@@ -100,3 +101,39 @@ class SqueezeExciteCl(nn.Module):
         x_se = self.act(x_se)
         x_se = self.fc2(x_se)
         return x * self.gate(x_se)
+
+class TSEModule(nn.Module):
+    """ TSE Module as defined in  
+    " Tiled Squeeze-and-Excite: Channel Attention With Local Spatial Context", Niv Vosco et al (2021)
+    """
+    def __init__(
+            self, channels, rd_ratio=1. / 16, rd_channels=None, rd_divisor=8, add_maxpool=False,
+            pool_kernel = 7, bias=True, act_layer=nn.ReLU, norm_layer=None, gate_layer='sigmoid'):
+        super(SEModule, self).__init__()
+        self.add_maxpool = add_maxpool
+        if not rd_channels:
+            rd_channels = make_divisible(channels * rd_ratio, rd_divisor, round_limit=0.)
+
+        self.bn = norm_layer(rd_channels) if norm_layer else nn.Identity()
+        self.act = create_act_layer(act_layer, inplace=True)
+        self.gate = create_act_layer(gate_layer)
+
+        self.cv1 = nn.Conv2d(channels, rd_channels, kernel_size = 1, stride = 1)
+        self.cv2 = nn.Conv2d(rd_channels, channels, kernel_size = 1, stride = 1)
+
+        self.avg_pool = nn.AvgPool2d(kernel_size = pool_kernel, stride = pool_kernel, ceil_mode = True)
+        self.kernel_size = pool_kernel
+
+    def forward(self, x):
+
+        _, C, H, W = x.size()
+
+        x_se = self.avg_pool(x_se)
+        x_se = self.cv1(x_se)
+        x_se = self.act(self.bn(x_se))
+        x_se = self.cv2(x_se)
+        y = torch.repeat_interleave(y, self.kernel_size, dim = -2)[:, :, :H, :]
+        y = torch.repeat_interleave(y, self.kernel_size, dim = -1)[:, :, :, :W]
+        return x * self.gate(x_se)
+
+TiledSqueezeExcite = TSEModule  # alias

@@ -21,7 +21,7 @@ import torch.nn as nn
 from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from ._registry import register_model, generate_default_cfgs
 from ._builder import build_model_with_cfg
-from timm.layers import SqueezeExcite, trunc_normal_, to_ntuple, to_2tuple
+from timm.layers import SqueezeExcite, TiledSqueezeExcite, trunc_normal_, to_ntuple, to_2tuple
 from ._manipulate import checkpoint_seq
 
 import torch
@@ -146,11 +146,17 @@ class RepVitMlp(nn.Module):
 
 
 class RepViTBlock(nn.Module):
-    def __init__(self, in_dim, mlp_ratio, kernel_size, use_se, act_layer, legacy=False):
+    def __init__(self, in_dim, mlp_ratio, kernel_size, use_se, act_layer, legacy=False, tiled_se=True):
         super(RepViTBlock, self).__init__()
 
         self.token_mixer = RepVggDw(in_dim, kernel_size, legacy)
-        self.se = SqueezeExcite(in_dim, 0.25) if use_se else nn.Identity()
+
+        self.se = nn.Identity()
+        if use_se and tiled_se:
+            self.se = TiledSqueezeExcite(in_dim, 0.25)
+        else:
+            self.se = SqueezeExcite(in_dim, 0.25)
+            
         self.channel_mixer = RepVitMlp(in_dim, in_dim * mlp_ratio, act_layer)
 
     def forward(self, x):
