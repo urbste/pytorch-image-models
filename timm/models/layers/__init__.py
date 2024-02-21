@@ -34,7 +34,7 @@ from timm.layers.norm_act import BatchNormAct2d, GroupNormAct, convert_sync_batc
 from timm.layers.padding import get_padding, get_same_padding, pad_same
 from timm.layers.patch_embed import PatchEmbed
 from timm.layers.pool2d_same import AvgPool2dSame, create_pool2d
-from timm.layers.squeeze_excite import SEModule, SqueezeExcite, EffectiveSEModule, EffectiveSqueezeExcite
+from timm.layers.squeeze_excite import SEModule, SqueezeExcite, EffectiveSEModule, EffectiveSqueezeExcite, TiledSqueezeExcite
 from timm.layers.selective_kernel import SelectiveKernel
 from timm.layers.separable_conv import SeparableConv2d, SeparableConvNormAct
 from timm.layers.space_to_depth import SpaceToDepthModule
