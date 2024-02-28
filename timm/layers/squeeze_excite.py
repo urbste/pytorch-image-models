@@ -108,7 +108,7 @@ class TSEModule(nn.Module):
     """
     def __init__(
             self, channels, rd_ratio=1. / 16, rd_channels=None, rd_divisor=8, add_maxpool=False,
-            pool_kernel = 5, bias=True, act_layer=nn.ReLU, norm_layer=None, gate_layer='sigmoid'):
+            pool_kernel = 3, bias=True, act_layer=nn.ReLU, norm_layer=None, gate_layer='sigmoid'):
         super(TSEModule, self).__init__()
         self.add_maxpool = add_maxpool
         if not rd_channels:
@@ -121,7 +121,7 @@ class TSEModule(nn.Module):
         self.cv1 = nn.Conv2d(channels, rd_channels, kernel_size = 1, stride = 1)
         self.cv2 = nn.Conv2d(rd_channels, channels, kernel_size = 1, stride = 1)
 
-        self.avg_pool = nn.AvgPool2d(kernel_size = pool_kernel, stride = pool_kernel)
+        self.avg_pool = nn.AvgPool2d(kernel_size = pool_kernel, stride = pool_kernel, ceil_mode = True)
         self.kernel_size = pool_kernel
 
 
